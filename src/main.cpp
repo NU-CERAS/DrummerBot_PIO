@@ -1,4 +1,5 @@
 #include "MIDIUSB.h"
+#include "test-midi.h"  // Notice the updated filename!
 #include <Arduino.h>
 #include <Servo.h>
 
@@ -110,3 +111,4 @@ void loop() {
     }
   }
 }
+
