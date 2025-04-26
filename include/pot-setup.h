@@ -1,10 +1,3 @@
-#ifndef TEST_POT_H
-#define TEST_POT_H
+#pragma once
 
-#include <Arduino.h>
-
-// Declare the function
-void runTestPOT();
 void updateNeutralPositions();
-
-#endif
