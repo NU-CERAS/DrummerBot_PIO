@@ -1,4 +1,5 @@
 #include "test-midi.h"  // Your custom file
+#include "test-pot.h"
 #include <Arduino.h>
 #include <Servo.h>
 
