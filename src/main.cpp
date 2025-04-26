@@ -1,5 +1,4 @@
-#include "MIDIUSB.h"
-#include "test-midi.h"  // Notice the updated filename!
+#include "test-midi.h"  // Your custom file
 #include <Arduino.h>
 #include <Servo.h>
 
@@ -26,7 +25,7 @@ const int KK1 = 4;
 const int KK2 = 7;
 
 // Define servo pins
-const int servoPins[] = {8, 9, 10, 11, 12, 13};
+const int servoPins[] = {2, 3, 4, 5, 6, 7};
 Servo servos[6];
 
 // Define variables to store the current position and action state for each servo
@@ -38,6 +37,7 @@ bool servoAction[6] = {false, false, false, false, false, false};  // Track acti
 // Define servo types: 0 for Kal, 1 for Dal
 const int servoTypes[6] = {1, 1, 1, 1, 1, 0};  // MD2 and MD5 are Dal, others are Kal
 
+// Helper Functions
 int adjustedVelocityControlByte(int velocityControlByte) {
   return constrain(velocityControlByte, 40, 120);
 }
@@ -52,57 +52,69 @@ int velocityControl(int changedVelocityControlByte, int servoIndex) {
 
 void setup() {
   Serial.begin(115200);
+  while (!Serial);
+
   pinMode(KK1, OUTPUT);
   pinMode(KK2, OUTPUT);
 
   // Attach each servo to its corresponding pin
   for (int i = 0; i < 6; i++) {
     servos[i].attach(servoPins[i]);
+    servos[i].write(neutPos[i]); // Start servos at neutral position
   }
+
+  Serial.println("Teensy 4.1 MIDI Drum Controller Initialized");
 }
 
 void loop() {
-  midiEventPacket_t rx;
   unsigned long currentMillis = millis();
   bool note_over = false;
-  do {
-    rx = MidiUSB.read();
-    if (rx.header != 0) {
-      int midiValue = rx.byte2;
-      if (midiValue == MKK) {
-        if (rx.header == 9) {  // Note On
-          digitalWrite(KK1, HIGH);
-          digitalWrite(KK2, HIGH);
-        } else if (rx.header == 8) {  // Note Off
-          digitalWrite(KK1, LOW);
-          digitalWrite(KK2, LOW);
-        }
-      }
-      else if (midiValue >= MD1 && midiValue <= MD6) {
-        int servoIndex = midiValue - MD1;
 
-        if (rx.header == 9) {
-          servoValues[servoIndex] = velocityControl(adjustedVelocityControlByte(rx.byte3), servoIndex);
-          servos[servoIndex].write(servoValues[servoIndex]);
-          previousMillis[servoIndex] = currentMillis;
-          servoAction[servoIndex] = true;
-        }
-        else if(rx.header == 8 && servoAction[servoIndex]) {
-          note_over = true;
-        } 
-        else if (rx.header == 8 && !servoAction[servoIndex]) {
-          servoValues[servoIndex] = neutPos[servoIndex];
-          servos[servoIndex].write(servoValues[servoIndex]);
-        }
-        Serial.print(rx.byte1);
-        Serial.print(" || ");
-        Serial.print(rx.byte2);
-        Serial.print(" || ");
-        Serial.println(rx.byte3);
+  // Read and process all incoming MIDI messages
+  while (usbMIDI.read()) {
+    byte type = usbMIDI.getType();
+    byte note = usbMIDI.getData1();
+    byte velocity = usbMIDI.getData2();
+
+    if (note == MKK) {  // Kick drum control
+      if (type == usbMIDI.NoteOn && velocity > 0) {
+        digitalWrite(KK1, HIGH);
+        digitalWrite(KK2, HIGH);
+      } 
+      else if (type == usbMIDI.NoteOff || (type == usbMIDI.NoteOn && velocity == 0)) {
+        digitalWrite(KK1, LOW);
+        digitalWrite(KK2, LOW);
       }
     }
-  } while (rx.header != 0);
- 
+    else if (note >= MD1 && note <= MD6) {  // Servo control
+      int servoIndex = note - MD1;
+
+      if (type == usbMIDI.NoteOn && velocity > 0) {
+        servoValues[servoIndex] = velocityControl(adjustedVelocityControlByte(velocity), servoIndex);
+        servos[servoIndex].write(servoValues[servoIndex]);
+        previousMillis[servoIndex] = currentMillis;
+        servoAction[servoIndex] = true;
+      } 
+      else if ((type == usbMIDI.NoteOff || (type == usbMIDI.NoteOn && velocity == 0)) && servoAction[servoIndex]) {
+        note_over = true;
+      } 
+      else if ((type == usbMIDI.NoteOff || (type == usbMIDI.NoteOn && velocity == 0)) && !servoAction[servoIndex]) {
+        servoValues[servoIndex] = neutPos[servoIndex];
+        servos[servoIndex].write(servoValues[servoIndex]);
+      }
+
+      // Debug print
+      Serial.print("MIDI Message: ");
+      Serial.print("Type ");
+      Serial.print(type);
+      Serial.print(" Note ");
+      Serial.print(note);
+      Serial.print(" Velocity ");
+      Serial.println(velocity);
+    }
+  }
+
+  // Handle servo hit and reset timing
   for (int i = 0; i < 6; i++) {
     if (servoAction[i] && ((currentMillis - previousMillis[i] >= interval) || note_over)) {
       servos[i].write(hitPos[i]);
@@ -111,4 +123,3 @@ void loop() {
     }
   }
 }
-
