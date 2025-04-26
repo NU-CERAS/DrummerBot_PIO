@@ -68,59 +68,61 @@ void setup() {
 }
 
 void loop() {
-  unsigned long currentMillis = millis();
-  bool note_over = false;
+  runTestPOT();
+  
+  // unsigned long currentMillis = millis();
+  // bool note_over = false;
 
-  // Read and process all incoming MIDI messages
-  while (usbMIDI.read()) {
-    byte type = usbMIDI.getType();
-    byte note = usbMIDI.getData1();
-    byte velocity = usbMIDI.getData2();
+  // // Read and process all incoming MIDI messages
+  // while (usbMIDI.read()) {
+  //   byte type = usbMIDI.getType();
+  //   byte note = usbMIDI.getData1();
+  //   byte velocity = usbMIDI.getData2();
 
-    if (note == MKK) {  // Kick drum control
-      if (type == usbMIDI.NoteOn && velocity > 0) {
-        digitalWrite(KK1, HIGH);
-        digitalWrite(KK2, HIGH);
-      } 
-      else if (type == usbMIDI.NoteOff || (type == usbMIDI.NoteOn && velocity == 0)) {
-        digitalWrite(KK1, LOW);
-        digitalWrite(KK2, LOW);
-      }
-    }
-    else if (note >= MD1 && note <= MD6) {  // Servo control
-      int servoIndex = note - MD1;
+  //   if (note == MKK) {  // Kick drum control
+  //     if (type == usbMIDI.NoteOn && velocity > 0) {
+  //       digitalWrite(KK1, HIGH);
+  //       digitalWrite(KK2, HIGH);
+  //     } 
+  //     else if (type == usbMIDI.NoteOff || (type == usbMIDI.NoteOn && velocity == 0)) {
+  //       digitalWrite(KK1, LOW);
+  //       digitalWrite(KK2, LOW);
+  //     }
+  //   }
+  //   else if (note >= MD1 && note <= MD6) {  // Servo control
+  //     int servoIndex = note - MD1;
 
-      if (type == usbMIDI.NoteOn && velocity > 0) {
-        servoValues[servoIndex] = velocityControl(adjustedVelocityControlByte(velocity), servoIndex);
-        servos[servoIndex].write(servoValues[servoIndex]);
-        previousMillis[servoIndex] = currentMillis;
-        servoAction[servoIndex] = true;
-      } 
-      else if ((type == usbMIDI.NoteOff || (type == usbMIDI.NoteOn && velocity == 0)) && servoAction[servoIndex]) {
-        note_over = true;
-      } 
-      else if ((type == usbMIDI.NoteOff || (type == usbMIDI.NoteOn && velocity == 0)) && !servoAction[servoIndex]) {
-        servoValues[servoIndex] = neutPos[servoIndex];
-        servos[servoIndex].write(servoValues[servoIndex]);
-      }
+  //     if (type == usbMIDI.NoteOn && velocity > 0) {
+  //       servoValues[servoIndex] = velocityControl(adjustedVelocityControlByte(velocity), servoIndex);
+  //       servos[servoIndex].write(servoValues[servoIndex]);
+  //       previousMillis[servoIndex] = currentMillis;
+  //       servoAction[servoIndex] = true;
+  //     } 
+  //     else if ((type == usbMIDI.NoteOff || (type == usbMIDI.NoteOn && velocity == 0)) && servoAction[servoIndex]) {
+  //       note_over = true;
+  //     } 
+  //     else if ((type == usbMIDI.NoteOff || (type == usbMIDI.NoteOn && velocity == 0)) && !servoAction[servoIndex]) {
+  //       servoValues[servoIndex] = neutPos[servoIndex];
+  //       servos[servoIndex].write(servoValues[servoIndex]);
+  //     }
 
-      // Debug print
-      Serial.print("MIDI Message: ");
-      Serial.print("Type ");
-      Serial.print(type);
-      Serial.print(" Note ");
-      Serial.print(note);
-      Serial.print(" Velocity ");
-      Serial.println(velocity);
-    }
-  }
+  //     // Debug print
+  //     Serial.print("MIDI Message: ");
+  //     Serial.print("Type ");
+  //     Serial.print(type);
+  //     Serial.print(" Note ");
+  //     Serial.print(note);
+  //     Serial.print(" Velocity ");
+  //     Serial.println(velocity);
+  //   }
+  // }
 
-  // Handle servo hit and reset timing
-  for (int i = 0; i < 6; i++) {
-    if (servoAction[i] && ((currentMillis - previousMillis[i] >= interval) || note_over)) {
-      servos[i].write(hitPos[i]);
-      servoAction[i] = false;
-      note_over = false;
-    }
-  }
+  // // Handle servo hit and reset timing
+  // for (int i = 0; i < 6; i++) {
+  //   if (servoAction[i] && ((currentMillis - previousMillis[i] >= interval) || note_over)) {
+  //     servos[i].write(hitPos[i]);
+  //     servoAction[i] = false;
+  //     note_over = false;
+  //   }
+  // }
 }
