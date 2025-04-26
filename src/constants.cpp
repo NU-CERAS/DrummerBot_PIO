@@ -27,7 +27,7 @@ const int maxVelDal = 125;
 const int maxVelKal = 160;
 
 // 	Defines the minimum time delay between a servo's initial hit action and its follow-up action (moving to the final hit position)
-const long interval = 20;
+const long interval = 30;
 
 // Servo positions
 // These arrays define the neutral, hit, and low/high neutral positions for each servo

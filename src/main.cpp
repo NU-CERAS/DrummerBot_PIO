@@ -9,19 +9,20 @@
 #include "pot-setup.h"        // Functions for reading potentiometers and adjusting neutral servo positions
 
 // === Arduino Setup Function ===
-// Initialize hardware settings before the main program loop starts
 void setup() {
   Serial.begin(115200);           // Start Serial communication at 115200 baud for debugging in Serial Monitor
 
-  pinMode(potSetupBtnPin, INPUT_PULLUP); // Set button pin as input with internal pull-up resistor
-  pinMode(KK1, OUTPUT);             // Set Kick Drum pin 1 as output
-  pinMode(KK2, OUTPUT);             // Set Kick Drum pin 2 as output
+  // Set button for pot setup as internal pullup
+  pinMode(potSetupBtnPin, INPUT_PULLUP); 
+
+  // Set kick drum pins to digital output
+  pinMode(KK1, OUTPUT);           
+  pinMode(KK2, OUTPUT);            
 
   initializeServos();               // Attach all servos to their pins and move them to neutral starting positions
 }
 
 // === Arduino Main Loop Function ===
-// Continuously handle input (button press, MIDI input) and control servos accordingly
 void loop() {
   potSetupBtnState = digitalRead(potSetupBtnPin); // Read the current state of the button (LOW if pressed)
 
