@@ -5,6 +5,6 @@
 
 // Declare the function
 void runTestPOT();
-void updateServosFromPots();
+void updateNeutralPositions();
 
 #endif

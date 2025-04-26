@@ -1,5 +1,5 @@
 #include "test-midi.h"  // Your custom file
-#include "test-pot.h"
+#include "pot-setup.h"
 #include <Arduino.h>
 #include <Servo.h>
 
@@ -7,6 +7,7 @@
 int neutPos[6] = {85, 87, 80, 81, 80, 101};
 int lowNeutPos[6] = {65, 67, 60, 61, 60, 81};
 int highNeutPos[6] = {105, 107, 100, 101, 100, 121};
+
 int PotPins[6] = {14, 15, 16, 17, 18, 19};
 const int buttonPin = 13;
 int buttonState = 0;
@@ -57,7 +58,6 @@ int velocityControl(int changedVelocityControlByte, int servoIndex) {
 
 void setup() {
   Serial.begin(115200);
-  while (!Serial);
   pinMode(buttonPin, INPUT_PULLUP);
   pinMode(KK1, OUTPUT);
   pinMode(KK2, OUTPUT);
@@ -67,14 +67,16 @@ void setup() {
     servos[i].attach(servoPins[i]);
     servos[i].write(neutPos[i]); // Start servos at neutral position
   }
-
-  Serial.println("Teensy 4.1 MIDI Drum Controller Initialized");
 }
 
 void loop() {
   buttonState = digitalRead(buttonPin);
-  if(buttonState == HIGH){
-    runTestPOT();
+  if(buttonState == LOW){
+    updateNeutralPositions();
+    for (int i = 0; i < 6; i++) {
+      servos[i].write(neutPos[i]); // Start servos at neutral position
+    }
+    delay(10);
   }
 
   unsigned long currentMillis = millis();
