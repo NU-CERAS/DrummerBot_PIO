@@ -21,8 +21,8 @@ const int MD5 = 41;
 const int MD6 = 42;
 
 // Define kick drum pins 
-const int KK1 = 4;
-const int KK2 = 7;
+const int KK1 = 20;
+const int KK2 = 21;
 
 // Define servo pins
 const int servoPins[] = {2, 3, 4, 5, 6, 7};
