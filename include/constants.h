@@ -1,6 +1,7 @@
 #pragma once
 #include <Arduino.h>
 #include <Servo.h>
+#include <AccelStepper.h>
 
 // Constants
 const int NUM_SERVOS = 6;
@@ -10,6 +11,8 @@ extern const int potSetupBtnPin;
 extern const int KK1;
 extern const int KK2;
 extern const int servoPins[NUM_SERVOS];
+extern const int STP1STP;
+extern const int STP1DIR;
 
 // MIDI notes
 extern const int MKK;
@@ -19,6 +22,7 @@ extern const int MD3;
 extern const int MD4;
 extern const int MD5;
 extern const int MD6;
+extern const int STP1; 
 
 // Servo types
 extern const int servoTypes[NUM_SERVOS];
@@ -40,3 +44,10 @@ extern int potSetupBtnState;
 
 // Servo objects
 extern Servo servos[NUM_SERVOS];
+
+//Stepper Constants
+extern const int stepsPerRevolution;
+extern const int speed;
+extern const int acceleration;
+extern AccelStepper twistStepper; 
+

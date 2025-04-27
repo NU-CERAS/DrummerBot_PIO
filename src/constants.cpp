@@ -1,5 +1,6 @@
 #include "constants.h"
 #include <Servo.h>
+#include <AccelStepper.h>
 
 // Pin mappings
 const int PotPins[NUM_SERVOS] = {14, 15, 16, 17, 18, 19};
@@ -7,6 +8,8 @@ const int potSetupBtnPin = 13;
 const int KK1 = 20;
 const int KK2 = 21;
 const int servoPins[NUM_SERVOS] = {2, 3, 4, 5, 6, 7};
+const int STP1STP = 29;
+const int STP1DIR = 28;
 
 // MIDI notes mapping
 const int MKK = 36;
@@ -16,6 +19,7 @@ const int MD3 = 39;
 const int MD4 = 40;
 const int MD5 = 41;
 const int MD6 = 42;
+const int STP1 = 48;
 
 // Servo types
 const int servoTypes[NUM_SERVOS] = {1, 1, 1, 1, 1, 0};
@@ -51,3 +55,9 @@ Servo servos[NUM_SERVOS];
 
 // Tracks state of the pot setting button
 int potSetupBtnState = 0;
+
+// Stepper Constants
+AccelStepper twistStepper(AccelStepper::DRIVER, STP1STP, STP1DIR);   
+const int stepsPerRevolution = 1000;  // Adjust this based on your stepper motor specifications
+const int speed = 16000;                // Steps per second
+const int acceleration = 8000;          // Acceleration

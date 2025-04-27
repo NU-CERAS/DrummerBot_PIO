@@ -3,7 +3,7 @@
 #include "midi-handler.h"   // Declarations for MIDI message processing
 #include "servo-control.h"  // Declarations for servo velocity control functions
 #include "constants.h"      // Shared constants like pin numbers, MIDI note mappings, and global variables
-
+#include <AccelStepper.h>
 // === Function: handleKickMIDI ===
 // Purpose: Control the kick drum output pins based on incoming MIDI messages
 void handleKickMIDI(byte type, byte velocity) {
@@ -48,6 +48,16 @@ void handleServoMIDI(byte type, byte note, byte velocity) {
   }
 }
 
+// === Function: handleStepperMIDI
+// Purpose: Control stepper motor movements based on incoming MIDI messages
+
+void handleStepperMIDI(byte type, byte note, byte velocity) {
+  if(type == usbMIDI.NoteOn){
+    int targetPos = map(velocity, 0, 127, -stepsPerRevolution, stepsPerRevolution);
+    twistStepper.moveTo(targetPos - twistStepper.currentPosition());
+  }
+}
+
 // === Function: readAndProcessMIDI ===
 // Purpose: Continuously read available MIDI messages and dispatch them to the correct handler (kick or servo)
 void readAndProcessMIDI() {
@@ -70,6 +80,10 @@ void readAndProcessMIDI() {
       // Serial.print(note);
       // Serial.print(" Velocity: ");
       // Serial.println(velocity);
+    }
+    // If the note corresponds to the stepper motors, handle it
+    else if(note == STP1){
+      handleStepperMIDI(type, note, velocity);
     }
   }
 }

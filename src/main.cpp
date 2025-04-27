@@ -1,12 +1,14 @@
 // === Includes ===
 // Include Arduino core library for basic microcontroller functions (pin control, Serial, etc.)
 #include <Arduino.h>
-
+//Include Stepper Library
+#include <AccelStepper.h>
 // Include custom header files for project-specific constants and functions
 #include "constants.h"        // Pin numbers, MIDI notes, servo types, and shared global variables
 #include "servo-control.h"    // Functions related to initializing and updating servos
 #include "midi-handler.h"     // Functions for reading and processing incoming MIDI messages
 #include "pot-setup.h"        // Functions for reading potentiometers and adjusting neutral servo positions
+#include "stepper-control.h"  //Functions for controlling stepper 
 
 // === Arduino Setup Function ===
 void setup() {
@@ -17,7 +19,10 @@ void setup() {
 
   // Set kick drum pins to digital output
   pinMode(KK1, OUTPUT);           
-  pinMode(KK2, OUTPUT);            
+  pinMode(KK2, OUTPUT);
+
+  // Initialize twist stepper motor 
+  setupSteppers();
 
   initializeServos();               // Attach all servos to their pins and move them to neutral starting positions
 }
@@ -37,4 +42,5 @@ void loop() {
 
   readAndProcessMIDI();            // Check for and process any incoming MIDI messages
   updateServoHits(currentMillis);  // Handle servo actions (e.g., returning to neutral) based on timing
+  runSteppers(); //run stepper motors
 }
