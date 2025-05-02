@@ -52,11 +52,14 @@ void handleServoMIDI(byte type, byte note, byte velocity) {
 // Purpose: Control stepper motor movements based on incoming MIDI messages
 
 void handleStepperMIDI(byte type, byte note, byte velocity) {
-  if(type == usbMIDI.NoteOn){
-    int targetPos = map(velocity, 0, 127, -stepsPerRevolution, stepsPerRevolution);
-    twistStepper.moveTo(targetPos - twistStepper.currentPosition());
+  if (type == usbMIDI.NoteOn) {
+    int targetPos = map(velocity, 0, 127, -twistPwidth, twistPwidth);
+    twistStepper.moveTo(targetPos); // absolute control
+    Serial.print("Moving stepper to absolute position: ");
+    Serial.println(targetPos);
   }
 }
+
 
 // === Function: readAndProcessMIDI ===
 // Purpose: Continuously read available MIDI messages and dispatch them to the correct handler (kick or servo)
@@ -83,7 +86,15 @@ void readAndProcessMIDI() {
     }
     // If the note corresponds to the stepper motors, handle it
     else if(note == STP1){
+
       handleStepperMIDI(type, note, velocity);
     }
   }
 }
+
+
+
+
+
+
+

@@ -4,11 +4,15 @@
 #include <AccelStepper.h>
 
 void setupSteppers(){
-    twistStepper.setMaxSpeed(speed);
-    twistStepper.setAcceleration(acceleration);
+    twistStepper.setMaxSpeed(twistSpeed);
+    twistStepper.setAcceleration(twistAcc);
+    twistStepper.setMinPulseWidth(twistPwidth); 
 }
 
 void runSteppers(){
     twistStepper.run();
-    Serial.println("Current Stepper Pos: " + twistStepper.currentPosition());
+    if (twistStepper.distanceToGo() != 0) {
+        Serial.println("Stepper moving to: " + String(twistStepper.targetPosition()));
+      }
+      
 }

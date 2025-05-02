@@ -46,8 +46,8 @@ extern int potSetupBtnState;
 extern Servo servos[NUM_SERVOS];
 
 //Stepper Constants
-extern const int stepsPerRevolution;
-extern const int speed;
-extern const int acceleration;
+extern const int twistSpeed;
+extern const int twistAcc;
+extern const int twistPwidth;
 extern AccelStepper twistStepper; 
 

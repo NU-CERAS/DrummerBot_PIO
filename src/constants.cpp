@@ -8,8 +8,8 @@ const int potSetupBtnPin = 13;
 const int KK1 = 20;
 const int KK2 = 21;
 const int servoPins[NUM_SERVOS] = {2, 3, 4, 5, 6, 7};
-const int STP1STP = 29;
-const int STP1DIR = 28;
+const int STP1STP = 38;
+const int STP1DIR = 37;
 
 // MIDI notes mapping
 const int MKK = 36;
@@ -31,7 +31,7 @@ const int maxVelDal = 125;
 const int maxVelKal = 160;
 
 // 	Defines the minimum time delay between a servo's initial hit action and its follow-up action (moving to the final hit position)
-const long interval = 30;
+const long interval = 50;
 
 // Servo positions
 // These arrays define the neutral, hit, and low/high neutral positions for each servo
@@ -58,6 +58,6 @@ int potSetupBtnState = 0;
 
 // Stepper Constants
 AccelStepper twistStepper(AccelStepper::DRIVER, STP1STP, STP1DIR);   
-const int stepsPerRevolution = 1000;  // Adjust this based on your stepper motor specifications
-const int speed = 16000;                // Steps per second
-const int acceleration = 8000;          // Acceleration
+const int twistSpeed = 500;                // Steps per second
+const int twistAcc = 400;          // Acceleration
+const int twistPwidth = 100;        // Minimum pulse width in microseconds
