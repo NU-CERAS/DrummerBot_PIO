@@ -11,8 +11,12 @@ extern const int potSetupBtnPin;
 extern const int KK1;
 extern const int KK2;
 extern const int servoPins[NUM_SERVOS];
-extern const int STP1STP;
-extern const int STP1DIR;
+extern const int BND1DIR;
+extern const int BND1STP;
+extern const int BND2DIR;
+extern const int BND2STP;
+extern const int TWIDIR;
+extern const int TWISTP;
 
 // MIDI notes
 extern const int MKK;
@@ -22,7 +26,8 @@ extern const int MD3;
 extern const int MD4;
 extern const int MD5;
 extern const int MD6;
-extern const int STP1; 
+extern const int MTWI; 
+extern const int MBND;
 
 // Servo types
 extern const int servoTypes[NUM_SERVOS];
@@ -50,4 +55,10 @@ extern const int twistSpeed;
 extern const int twistAcc;
 extern const int twistPwidth;
 extern AccelStepper twistStepper; 
+
+extern const int bendSpeed;
+extern const int bendAcc;
+extern const int bendPwidth;
+extern AccelStepper bendStepper1;
+extern AccelStepper bendStepper2;
 

@@ -53,10 +53,19 @@ void handleServoMIDI(byte type, byte note, byte velocity) {
 
 void handleStepperMIDI(byte type, byte note, byte velocity) {
   if (type == usbMIDI.NoteOn) {
-    int targetPos = map(velocity, 0, 127, -twistPwidth, twistPwidth);
-    twistStepper.moveTo(targetPos); // absolute control
-    Serial.print("Moving stepper to absolute position: ");
-    Serial.println(targetPos);
+    if(note == MTWI){
+      int targetPos = map(velocity, 0, 127, -twistPwidth, twistPwidth);
+      twistStepper.moveTo(targetPos); // absolute control of pos
+      Serial.print("Moving twist stepper to absolute position: ");
+      Serial.println(targetPos);
+    }
+    else if(note == MBND){
+      int targetPos = map(velocity, 0, 127, -bendPwidth, bendPwidth);
+      bendStepper1.moveTo(targetPos);
+      bendStepper2.moveTo(-targetPos); //negative of targetPos so the stepper motors move together
+      Serial.print("Moving bend stepper to absolute position: ");
+      Serial.println(targetPos);
+    }
   }
 }
 
@@ -85,8 +94,7 @@ void readAndProcessMIDI() {
       // Serial.println(velocity);
     }
     // If the note corresponds to the stepper motors, handle it
-    else if(note == STP1){
-
+    else if(note == MTWI || note == MBND){
       handleStepperMIDI(type, note, velocity);
     }
   }
