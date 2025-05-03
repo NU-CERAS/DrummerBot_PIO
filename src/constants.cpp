@@ -14,6 +14,7 @@ const int BND2DIR = 35;
 const int BND2STP = 36;
 const int TWIDIR = 37;
 const int TWISTP = 38;
+const int HATP_SERVO_PIN = 8;
 
 // MIDI notes mapping
 const int MKK = 36;
@@ -25,6 +26,7 @@ const int MD5 = 41;
 const int MD6 = 42;
 const int MTWI = 48;
 const int MBND = 49;
+const int HATP_MIDI_NOTE = 43;
 
 // Servo types
 const int servoTypes[NUM_SERVOS] = {1, 1, 1, 1, 1, 0};
@@ -34,6 +36,9 @@ const int servoTypes[NUM_SERVOS] = {1, 1, 1, 1, 1, 0};
 // Kal servos (type 0) move towards larger angles when hitting
 const int maxVelDal = 125;
 const int maxVelKal = 160;
+
+const int hatPedActiveAngle = 45;
+const int hatPedRestAngle = 90;
 
 // 	Defines the minimum time delay between a servo's initial hit action and its follow-up action (moving to the final hit position)
 const long interval = 50;
@@ -57,6 +62,7 @@ bool servoAction[NUM_SERVOS] = {false};
 
 // Servo objects for controlling each servo motor
 Servo servos[NUM_SERVOS];
+Servo hatPedServo;
 
 // Tracks state of the pot setting button
 int potSetupBtnState = 0;

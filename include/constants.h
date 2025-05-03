@@ -37,6 +37,13 @@ extern const int maxVelDal;
 extern const int maxVelKal;
 extern const long interval;
 
+// Hat Pedal Servo
+extern const int HATP_SERVO_PIN;
+extern const int HATP_MIDI_NOTE;
+extern const int hatPedActiveAngle;
+extern const int hatPedRestAngle;
+extern Servo hatPedServo;
+
 // Globals (mutable)
 extern int hitPos[NUM_SERVOS];
 extern int neutPos[NUM_SERVOS];

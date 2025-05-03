@@ -19,7 +19,7 @@ void setup() {
   // Set kick drum pins to digital output
   pinMode(KK1, OUTPUT);           
   pinMode(KK2, OUTPUT);            
-
+  
   initializeServos();               // Attach all servos to their pins and move them to neutral starting positions
   setupSteppers();
 }
