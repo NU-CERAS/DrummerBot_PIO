@@ -75,6 +75,6 @@ const int twistPwidth = 100;        // Minimum pulse width in microseconds
 
 AccelStepper bendStepper1(AccelStepper::DRIVER, BND1STP, BND1DIR);
 AccelStepper bendStepper2(AccelStepper::DRIVER, BND2STP, BND2DIR);
-const int bendSpeed = 50;   // Steps per second
-const int bendAcc = 40;    // Acceleration
+const int bendSpeed = 500;   // Steps per second
+const int bendAcc = 500;    // Acceleration
 const int bendPwidth = 100;    // Minimum pulse width in microseconds
