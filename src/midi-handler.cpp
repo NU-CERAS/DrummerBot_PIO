@@ -53,9 +53,9 @@ void handleServoMIDI(byte type, byte note, byte velocity) {
 // === Function: handleHatPedServoMIDI
 // Purpose: Control the hat pedal servo based on incoming MIDI messages
 void handleHatPedServoMIDI(byte type, byte velocity) {
-  if (type == usbMIDI.NoteOn && velocity > 0) {
+  if (type == usbMIDI.NoteOn) {
     hatPedServo.write(hatPedActiveAngle);
-  } else if (type == usbMIDI.NoteOff || (type == usbMIDI.NoteOn && velocity == 0)) {
+  } else if (type == usbMIDI.NoteOff) {
     hatPedServo.write(hatPedRestAngle);
   }
 }
