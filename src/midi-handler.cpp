@@ -25,27 +25,44 @@ void handleServoMIDI(byte type, byte note, byte velocity) {
   int servoIndex = note - MD1;         // Map the incoming MIDI note to the corresponding servo index
   unsigned long currentMillis = millis(); // Capture the current time for timing calculations
 
-  // Handle Note On with nonzero velocity (servo hit action)
-  if (type == usbMIDI.NoteOn && velocity > 0) {
-    // Adjust velocity using helper functions and command servo to new position
-    servoValues[servoIndex] = velocityControl(adjustedVelocityControlByte(velocity), servoIndex);
-    servos[servoIndex].write(servoValues[servoIndex]);
+  // *** test code for Tal servo (type 2)
+  if (servoTypes[servoIndex] == 2) {
+    Serial.println(servoIndex);
+    if (type == usbMIDI.NoteOn) {
+      servos[servoIndex].write(velocityControl(adjustedVelocityControlByte(velocity), servoIndex));
+      servoAction[servoIndex] = true; // Mark this servo as active (in hitting state)
+    }
+    else if (type == usbMIDI.NoteOff) {
+      servoAction[servoIndex] = false;          // Mark servo as no longer active
+      servos[servoIndex].write(neutPos[servoIndex]);
+    }
+  }
 
-    // Record the current time for timing when to reset
-    previousMillis[servoIndex] = currentMillis;
+  // type 1 and 0 servos
+  else {
+    // Handle Note On with nonzero velocity (servo hit action)
+    if (type == usbMIDI.NoteOn && velocity > 0) {
+      // Adjust velocity using helper functions and command servo to new position
+      servoValues[servoIndex] = velocityControl(adjustedVelocityControlByte(velocity), servoIndex);
+      servos[servoIndex].write(servoValues[servoIndex]);
 
-    // Mark this servo as active (in hitting state)
-    servoAction[servoIndex] = true;
+      // Record the current time for timing when to reset
+      previousMillis[servoIndex] = currentMillis;
+
+      // Mark this servo as active (in hitting state)
+      servoAction[servoIndex] = true;
+    }
+    // Handle Note Off or Note On with zero velocity when the servo was actively hitting
+    else if ((type == usbMIDI.NoteOff || (type == usbMIDI.NoteOn && velocity == 0)) && servoAction[servoIndex]) {
+      servoAction[servoIndex] = false;          // Mark servo as no longer active
+      servos[servoIndex].write(hitPos[servoIndex]); // Move servo to its designated hit position
+    }
+    // Handle Note Off or Note On with zero velocity if the servo was already idle
+    else if ((type == usbMIDI.NoteOff || (type == usbMIDI.NoteOn && velocity == 0)) && !servoAction[servoIndex]) {
+      servos[servoIndex].write(neutPos[servoIndex]); // Return servo to its neutral resting position
+    }
   }
-  // Handle Note Off or Note On with zero velocity when the servo was actively hitting
-  else if ((type == usbMIDI.NoteOff || (type == usbMIDI.NoteOn && velocity == 0)) && servoAction[servoIndex]) {
-    servoAction[servoIndex] = false;          // Mark servo as no longer active
-    servos[servoIndex].write(hitPos[servoIndex]); // Move servo to its designated hit position
-  }
-  // Handle Note Off or Note On with zero velocity if the servo was already idle
-  else if ((type == usbMIDI.NoteOff || (type == usbMIDI.NoteOn && velocity == 0)) && !servoAction[servoIndex]) {
-    servos[servoIndex].write(neutPos[servoIndex]); // Return servo to its neutral resting position
-  }
+
 }
 
 // === Function: handleStepperMIDI
@@ -74,7 +91,7 @@ void readAndProcessMIDI() {
       handleKickMIDI(type, velocity);
     }
     // If the note corresponds to one of the servos, handle it
-    else if (note >= MD1 && note <= MD6) {
+    else if (note >= MD1 && note <= MD7) {
       handleServoMIDI(type, note, velocity);
 
       // Serial.print("[MIDI] Type: ");

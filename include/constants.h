@@ -4,7 +4,7 @@
 #include <AccelStepper.h>
 
 // Constants
-const int NUM_SERVOS = 6;
+const int NUM_SERVOS = 7; // changed to 7
 
 extern const int PotPins[NUM_SERVOS];
 extern const int potSetupBtnPin;
@@ -22,6 +22,7 @@ extern const int MD3;
 extern const int MD4;
 extern const int MD5;
 extern const int MD6;
+extern const int MD7; // added
 extern const int STP1; 
 
 // Servo types
@@ -31,6 +32,9 @@ extern const int servoTypes[NUM_SERVOS];
 extern const int maxVelDal;
 extern const int maxVelKal;
 extern const long interval;
+
+extern const int onPosTal;
+extern const int offPosTal;
 
 // Globals (mutable)
 extern int hitPos[NUM_SERVOS];

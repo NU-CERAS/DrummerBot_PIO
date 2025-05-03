@@ -15,8 +15,14 @@ int adjustedVelocityControlByte(int velocityControlByte) {
 int velocityControl(int changedVelocityControlByte, int servoIndex) {
   if (servoTypes[servoIndex] == 1) { // Dal servo (moves toward smaller angle when hitting)
     return neutPos[servoIndex] - ((changedVelocityControlByte - 40) * (neutPos[servoIndex] - maxVelDal) / 80);
-  } else { // Kal servo (moves toward larger angle when hitting)
+  }
+  else if (servoTypes[servoIndex] == 0) { // Kal servo (moves toward larger angle when hitting)
     return neutPos[servoIndex] + ((changedVelocityControlByte - 40) * (neutPos[servoIndex] - maxVelKal) / 80);
+  }
+  else if (servoTypes[servoIndex] == 2) { // Tal servo
+    // default for note on
+    Serial.println("testtest");
+    return onPosTal;
   }
 }
 
@@ -34,10 +40,12 @@ void initializeServos() {
 // If a servo has been in action for longer than the defined interval, move it to its hit position and deactivate its action flag
 void updateServoHits(unsigned long currentMillis) {
   for (int i = 0; i < NUM_SERVOS; i++) {
-    // Check if servo is active and enough time has passed since its activation
-    if (servoAction[i] && (currentMillis - previousMillis[i] >= interval)) {
-      servos[i].write(hitPos[i]);      // Move the servo to its designated hit position
-      servoAction[i] = false;          // Mark the servo as inactive after completing its hit
+    if (servoTypes[i] != 2) {
+       // Check if servo is active and enough time has passed since its activation
+      if (servoAction[i] && (currentMillis - previousMillis[i] >= interval)) {
+        servos[i].write(hitPos[i]);      // Move the servo to its designated hit position
+        servoAction[i] = false;          // Mark the servo as inactive after completing its hit
+      }
     }
   }
 }

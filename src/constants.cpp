@@ -3,11 +3,11 @@
 #include <AccelStepper.h>
 
 // Pin mappings
-const int PotPins[NUM_SERVOS] = {14, 15, 16, 17, 18, 19};
+const int PotPins[NUM_SERVOS] = {14, 15, 16, 17, 18, 19, 20};
 const int potSetupBtnPin = 13;
 const int KK1 = 20;
 const int KK2 = 21;
-const int servoPins[NUM_SERVOS] = {2, 3, 4, 5, 6, 7};
+const int servoPins[NUM_SERVOS] = {2, 3, 4, 5, 6, 7, 9};
 const int STP1STP = 38;
 const int STP1DIR = 37;
 
@@ -19,10 +19,11 @@ const int MD3 = 39;
 const int MD4 = 40;
 const int MD5 = 41;
 const int MD6 = 42;
+const int MD7 = 43; // added
 const int STP1 = 48;
 
 // Servo types
-const int servoTypes[NUM_SERVOS] = {1, 1, 1, 1, 1, 0};
+const int servoTypes[NUM_SERVOS] = {1, 1, 1, 1, 1, 0, 1};
 
 // Servo hit settings
 // Dal servos (type 1) move towards smaller angles when hitting
@@ -30,15 +31,19 @@ const int servoTypes[NUM_SERVOS] = {1, 1, 1, 1, 1, 0};
 const int maxVelDal = 125;
 const int maxVelKal = 160;
 
+// arbitrary numbers for Tal servo (type 2)
+const int onPosTal = 45;
+const int offPosTal = 90;
+
 // 	Defines the minimum time delay between a servo's initial hit action and its follow-up action (moving to the final hit position)
 const long interval = 50;
 
 // Servo positions
 // These arrays define the neutral, hit, and low/high neutral positions for each servo
-int hitPos[NUM_SERVOS] = {80, 82, 75, 76, 75, 106};
-int neutPos[NUM_SERVOS] = {85, 87, 80, 81, 80, 101};
-int lowNeutPos[NUM_SERVOS] = {65, 67, 60, 61, 60, 81};
-int highNeutPos[NUM_SERVOS] = {105, 107, 100, 101, 100, 121};
+int hitPos[NUM_SERVOS] = {80, 82, 75, 76, 75, 106, 90};
+int neutPos[NUM_SERVOS] = {85, 87, 80, 81, 80, 101, 45};
+int lowNeutPos[NUM_SERVOS] = {65, 67, 60, 61, 60, 81, 45};
+int highNeutPos[NUM_SERVOS] = {105, 107, 100, 101, 100, 121, 45};
 
 // Stores the target position each servo should move to based on incoming MIDI velocity
 // initialized to 0 for all servos
