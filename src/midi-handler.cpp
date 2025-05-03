@@ -23,6 +23,7 @@ void handleKickMIDI(byte type, byte velocity) {
 // Purpose: Control servo movements based on incoming MIDI messages
 void handleServoMIDI(byte type, byte note, byte velocity) {
   int servoIndex = note - MD1;         // Map the incoming MIDI note to the corresponding servo index
+  if (servoIndex < 0 || servoIndex >= NUM_SERVOS) return;
   unsigned long currentMillis = millis(); // Capture the current time for timing calculations
 
   // Handle Note On with nonzero velocity (servo hit action)
@@ -46,7 +47,19 @@ void handleServoMIDI(byte type, byte note, byte velocity) {
   else if ((type == usbMIDI.NoteOff || (type == usbMIDI.NoteOn && velocity == 0)) && !servoAction[servoIndex]) {
     servos[servoIndex].write(neutPos[servoIndex]); // Return servo to its neutral resting position
   }
+
 }
+
+// === Function: handleHatPedServoMIDI
+// Purpose: Control the hat pedal servo based on incoming MIDI messages
+void handleHatPedServoMIDI(byte type, byte velocity) {
+  if (type == usbMIDI.NoteOn) {
+    hatPedServo.write(hatPedActiveAngle);
+  } else if (type == usbMIDI.NoteOff) {
+    hatPedServo.write(hatPedRestAngle);
+  }
+}
+
 
 // === Function: handleStepperMIDI
 // Purpose: Control stepper motor movements based on incoming MIDI messages
@@ -55,9 +68,9 @@ void handleStepperMIDI(byte type, byte note, byte velocity) {
   if (type == usbMIDI.NoteOn) {
     int targetPos = map(velocity, 0, 127, -twistPwidth, twistPwidth);
     twistStepper.moveTo(targetPos); // absolute control
-    Serial.print("Moving stepper to absolute position: ");
     Serial.println(targetPos);
   }
+
 }
 
 
@@ -74,24 +87,36 @@ void readAndProcessMIDI() {
       handleKickMIDI(type, velocity);
     }
     // If the note corresponds to one of the servos, handle it
-    else if (note >= MD1 && note <= MD6) {
+    else if (note == HATP_MIDI_NOTE) {
+      handleHatPedServoMIDI(type, velocity);
+    }    
+    else if (note >= MD1 && note <= MD6 && note != HATP_MIDI_NOTE) {
       handleServoMIDI(type, note, velocity);
-
-      // Serial.print("[MIDI] Type: ");
-      // Serial.print(type);
-      // Serial.print(" Note: ");
-      // Serial.print(note);
-      // Serial.print(" Velocity: ");
-      // Serial.println(velocity);
-    }
+    }    
     // If the note corresponds to the stepper motors, handle it
     else if(note == STP1){
-
       handleStepperMIDI(type, note, velocity);
     }
   }
 }
 
+void printMIDIMessage() {
+  while (usbMIDI.read()) {
+    byte type = usbMIDI.getType();
+    byte channel = usbMIDI.getChannel();
+    byte data1 = usbMIDI.getData1();
+    byte data2 = usbMIDI.getData2();
+
+    Serial.print("[MIDI] Type: ");
+    Serial.print(type);
+    Serial.print(" | Channel: ");
+    Serial.print(channel);
+    Serial.print(" | Data1 (Note): ");
+    Serial.print(data1);
+    Serial.print(" | Data2 (Velocity/Value): ");
+    Serial.println(data2);
+  }
+}
 
 
 
