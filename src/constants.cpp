@@ -8,9 +8,13 @@ const int potSetupBtnPin = 13;
 const int KK1 = 20;
 const int KK2 = 21;
 const int servoPins[NUM_SERVOS] = {2, 3, 4, 5, 6, 7};
+const int BND1DIR = 33;
+const int BND1STP = 34;
+const int BND2DIR = 35;
+const int BND2STP = 36;
+const int TWIDIR = 37;
+const int TWISTP = 38;
 const int HATP_SERVO_PIN = 8;
-const int STP1STP = 38;
-const int STP1DIR = 37;
 
 // MIDI notes mapping
 const int MKK = 36;
@@ -20,8 +24,9 @@ const int MD3 = 39;
 const int MD4 = 40;
 const int MD5 = 41;
 const int MD6 = 42;
+const int MTWI = 48;
+const int MBND = 49;
 const int HATP_MIDI_NOTE = 43;
-const int STP1 = 48;
 
 // Servo types
 const int servoTypes[NUM_SERVOS] = {1, 1, 1, 1, 1, 0};
@@ -63,7 +68,13 @@ Servo hatPedServo;
 int potSetupBtnState = 0;
 
 // Stepper Constants
-AccelStepper twistStepper(AccelStepper::DRIVER, STP1STP, STP1DIR);   
+AccelStepper twistStepper(AccelStepper::DRIVER, TWISTP, TWIDIR);   
 const int twistSpeed = 500;                // Steps per second
 const int twistAcc = 400;          // Acceleration
 const int twistPwidth = 100;        // Minimum pulse width in microseconds
+
+AccelStepper bendStepper1(AccelStepper::DRIVER, BND1STP, BND1DIR);
+AccelStepper bendStepper2(AccelStepper::DRIVER, BND2STP, BND2DIR);
+const int bendSpeed = 50;   // Steps per second
+const int bendAcc = 40;    // Acceleration
+const int bendPwidth = 100;    // Minimum pulse width in microseconds
