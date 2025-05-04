@@ -22,33 +22,41 @@ void handleKickMIDI(byte type, byte velocity) {
 // === Function: handleServoMIDI ===
 // Purpose: Control servo movements based on incoming MIDI messages
 void handleServoMIDI(byte type, byte note, byte velocity) {
-  int servoIndex = note - MD1;         // Map the incoming MIDI note to the corresponding servo index
-  if (servoIndex < 0 || servoIndex >= NUM_SERVOS) return;
-  unsigned long currentMillis = millis(); // Capture the current time for timing calculations
+  // Map the incoming MIDI note to the corresponding servo index
+  int servoIndex = -1;
+  if (note == MD1) servoIndex = 0;
+  else if (note == MD2) servoIndex = 1;
+  else if (note == MD3) servoIndex = 2;
+  else if (note == MD4) servoIndex = 3;
+  else if (note == MD5) servoIndex = 4;
+  else if (note == MD6) servoIndex = 5;
+  else return;  // Invalid note
+
+  unsigned long currentMillis = millis();  // Capture the current time for timing calculations
 
   // Handle Note On with nonzero velocity (servo hit action)
   if (type == usbMIDI.NoteOn && velocity > 0) {
-    // Adjust velocity using helper functions and command servo to new position
-    servoValues[servoIndex] = velocityControl(adjustedVelocityControlByte(velocity), servoIndex);
-    servos[servoIndex].write(servoValues[servoIndex]);
+      // Adjust velocity using helper functions and command servo to new position
+      servoValues[servoIndex] = velocityControl(adjustedVelocityControlByte(velocity), servoIndex);
+      servos[servoIndex].write(servoValues[servoIndex]);
 
-    // Record the current time for timing when to reset
-    previousMillis[servoIndex] = currentMillis;
+      // Record the current time for timing when to reset
+      previousMillis[servoIndex] = currentMillis;
 
-    // Mark this servo as active (in hitting state)
-    servoAction[servoIndex] = true;
+      // Mark this servo as active (in hitting state)
+      servoAction[servoIndex] = true;
   }
   // Handle Note Off or Note On with zero velocity when the servo was actively hitting
   else if ((type == usbMIDI.NoteOff || (type == usbMIDI.NoteOn && velocity == 0)) && servoAction[servoIndex]) {
-    servoAction[servoIndex] = false;          // Mark servo as no longer active
-    servos[servoIndex].write(hitPos[servoIndex]); // Move servo to its designated hit position
+      servoAction[servoIndex] = false;  // Mark servo as no longer active
+      servos[servoIndex].write(hitPos[servoIndex]);  // Move servo to its designated hit position
   }
   // Handle Note Off or Note On with zero velocity if the servo was already idle
   else if ((type == usbMIDI.NoteOff || (type == usbMIDI.NoteOn && velocity == 0)) && !servoAction[servoIndex]) {
-    servos[servoIndex].write(neutPos[servoIndex]); // Return servo to its neutral resting position
+      servos[servoIndex].write(neutPos[servoIndex]);  // Return servo to its neutral resting position
   }
-
 }
+
 
 // === Function: handleHatPedServoMIDI
 // Purpose: Control the hat pedal servo based on incoming MIDI messages
@@ -99,9 +107,18 @@ void readAndProcessMIDI() {
     else if (note == HATP_MIDI_NOTE) {
       handleHatPedServoMIDI(type, velocity);
     }    
-    else if (note >= MD1 && note <= MD6 && note != HATP_MIDI_NOTE) {
+    else if (
+      (note == MD1 || 
+       note == MD2 || 
+       note == MD3 || 
+       note == MD4 || 
+       note == MD5 || 
+       note == MD6) &&
+      note != HATP_MIDI_NOTE
+  ) {
       handleServoMIDI(type, note, velocity);
-    }    
+  }
+     
     // If the note corresponds to the stepper motors, handle it
     else if(note == MTWI || note == MBND){
       handleStepperMIDI(type, note, velocity);
