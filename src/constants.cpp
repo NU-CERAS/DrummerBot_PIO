@@ -23,7 +23,7 @@ const int MD2 = 41;
 const int MD3 = 45;
 const int MD4 = 48;
 const int MD5 = 38;
-const int MD6 = 42;
+const int MD6 = 49;
 const int MTWI = 60;
 const int MBND = 61;
 const int HATP_MIDI_NOTE = 44;
@@ -75,6 +75,6 @@ const int twistPwidth = 100;        // Minimum pulse width in microseconds
 
 AccelStepper bendStepper1(AccelStepper::DRIVER, BND1STP, BND1DIR);
 AccelStepper bendStepper2(AccelStepper::DRIVER, BND2STP, BND2DIR);
-const int bendSpeed = 500;   // Steps per second
-const int bendAcc = 500;    // Acceleration
+const int bendSpeed = 150;   // Steps per second
+const int bendAcc = 150;    // Acceleration
 const int bendPwidth = 100;    // Minimum pulse width in microseconds
