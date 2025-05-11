@@ -7,14 +7,14 @@ const int PotPins[NUM_SERVOS] = {14, 15, 16, 17, 18, 19};
 const int potSetupBtnPin = 13;
 const int KK1 = 20;
 const int KK2 = 21;
-const int servoPins[NUM_SERVOS] = {2, 3, 4, 5, 6, 7};
+const int servoPins[NUM_SERVOS] = {2, 3, 4, 5, 6, 9};
 const int BND1DIR = 33;
 const int BND1STP = 34;
 const int BND2DIR = 35;
 const int BND2STP = 36;
 const int TWIDIR = 37;
 const int TWISTP = 38;
-const int HATP_SERVO_PIN = 8;
+const int HATP_SERVO_PIN = 10;
 
 // MIDI notes mapping
 const int MKK = 36;
