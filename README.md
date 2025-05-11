@@ -7,7 +7,7 @@ An advanced, MIDI-controlled robotic drummer built using a Teensy 4.1 microcontr
 
 ### Core Hardware
 - **Microcontroller**: Teensy 4.1
-- **Actuators**: Multiple servos and stepper motors
+- **Actuators**: Multiple servos, solenoids and stepper motors
 - **Input**: MIDI interface, calibration potentiometers
 
 ### Key Features
@@ -58,9 +58,3 @@ An advanced, MIDI-controlled robotic drummer built using a Teensy 4.1 microcontr
 - Advanced MIDI parsing
 - More complex drumming algorithms
 - Enhanced Python integration
-
-## License
-[Your License Here]
-
-## Contact
-[Your Contact Information]
