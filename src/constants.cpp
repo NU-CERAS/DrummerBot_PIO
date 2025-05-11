@@ -69,12 +69,12 @@ int potSetupBtnState = 0;
 
 // Stepper Constants
 AccelStepper twistStepper(AccelStepper::DRIVER, TWISTP, TWIDIR);   
-const int twistSpeed = 500;                // Steps per second
-const int twistAcc = 400;          // Acceleration
-const int twistPwidth = 100;        // Minimum pulse width in microseconds
+const int twistSpeed = 300;                // Steps per second
+const int twistAcc = 200;          // Acceleration
+const int twistPwidth = 50;        // Minimum pulse width in microseconds
 
 AccelStepper bendStepper1(AccelStepper::DRIVER, BND1STP, BND1DIR);
 AccelStepper bendStepper2(AccelStepper::DRIVER, BND2STP, BND2DIR);
-const int bendSpeed = 150;   // Steps per second
-const int bendAcc = 150;    // Acceleration
+const int bendSpeed = 50;   // Steps per second
+const int bendAcc = 50;    // Acceleration
 const int bendPwidth = 100;    // Minimum pulse width in microseconds
