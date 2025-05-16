@@ -1,6 +1,6 @@
 #pragma once
 #include <Arduino.h>
-
+extern int midiSignalTime;
 void readAndProcessMIDI();
 void handleKickDrum(byte type, byte velocity);
 void handleServoMIDI(byte type, byte note, byte velocity);

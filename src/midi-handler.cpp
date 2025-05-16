@@ -6,6 +6,8 @@
 #include <AccelStepper.h>
 // === Function: handleKickMIDI ===
 // Purpose: Control the kick drum output pins based on incoming MIDI messages
+int midiSignalTime = 0;
+
 void handleKickMIDI(byte type, byte velocity) {
   // If a Note On message is received with nonzero velocity, activate kick drum outputs
   if (type == usbMIDI.NoteOn && velocity > 0) {
@@ -36,6 +38,7 @@ void handleServoMIDI(byte type, byte note, byte velocity) {
 
   // Handle Note On with nonzero velocity (servo hit action)
   if (type == usbMIDI.NoteOn && velocity > 0) {
+      int midiSignalTime = currentMillis;
       // Adjust velocity using helper functions and command servo to new position
       servoValues[servoIndex] = velocityControl(adjustedVelocityControlByte(velocity), servoIndex);
       servos[servoIndex].write(servoValues[servoIndex]);
@@ -133,14 +136,14 @@ void printMIDIMessage() {
     byte data1 = usbMIDI.getData1();
     byte data2 = usbMIDI.getData2();
 
-    Serial.print("[MIDI] Type: ");
-    Serial.print(type);
-    Serial.print(" | Channel: ");
-    Serial.print(channel);
-    Serial.print(" | Data1 (Note): ");
-    Serial.print(data1);
-    Serial.print(" | Data2 (Velocity/Value): ");
-    Serial.println(data2);
+    // Serial.print("[MIDI] Type: ");
+    // Serial.print(type);
+    // Serial.print(" | Channel: ");
+    // Serial.print(channel);
+    // Serial.print(" | Data1 (Note): ");
+    // Serial.print(data1);
+    // Serial.print(" | Data2 (Velocity/Value): ");
+    // Serial.println(data2);
   }
 }
 

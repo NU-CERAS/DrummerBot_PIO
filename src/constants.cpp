@@ -78,3 +78,7 @@ AccelStepper bendStepper2(AccelStepper::DRIVER, BND2STP, BND2DIR);
 const int bendSpeed = 50;   // Steps per second
 const int bendAcc = 50;    // Acceleration
 const int bendPwidth = 100;    // Minimum pulse width in microseconds
+
+
+//Data Delay Constants
+const int delayPin = 24;

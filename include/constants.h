@@ -69,3 +69,6 @@ extern const int bendPwidth;
 extern AccelStepper bendStepper1;
 extern AccelStepper bendStepper2;
 
+//Delay Data
+extern const int delayPin;
+

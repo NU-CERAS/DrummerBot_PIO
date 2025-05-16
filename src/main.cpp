@@ -9,6 +9,8 @@
 #include "pot-setup.h"        // Functions for reading potentiometers and adjusting neutral servo positions
 #include "stepper-control.h"  // Functions for controlling stepper motors
 
+int forceValue = 0;
+
 // === Arduino Setup Function ===
 void setup() {
   Serial.begin(115200);           // Start Serial communication at 115200 baud for debugging in Serial Monitor
@@ -22,6 +24,7 @@ void setup() {
   
   initializeServos();               // Attach all servos to their pins and move them to neutral starting positions
   setupSteppers();
+  
 }
 
 // === Arduino Main Loop Function ===
@@ -36,6 +39,11 @@ void loop() {
   }
 
   unsigned long currentMillis = millis(); // Get the current time in milliseconds since program start
+
+  forceValue = analogRead(delayPin);
+  if(forceValue > 300){
+    Serial.println(midiSignalTime - currentMillis);
+  }
 
   readAndProcessMIDI();            // Check for and process any incoming MIDI messages
   updateServoHits(currentMillis);  // Handle servo actions (e.g., returning to neutral) based on timing
