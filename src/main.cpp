@@ -10,6 +10,7 @@
 #include "stepper-control.h"  // Functions for controlling stepper motors
 
 int forceValue = 0;
+bool forceToggle = false;
 
 // === Arduino Setup Function ===
 void setup() {
@@ -41,8 +42,16 @@ void loop() {
   unsigned long currentMillis = millis(); // Get the current time in milliseconds since program start
 
   forceValue = analogRead(delayPin);
-  if(forceValue > 300){
-    Serial.println(midiSignalTime - currentMillis);
+  // Serial.print(midiSignalTime);
+  // Serial.print(" ");
+  // Serial.println(currentMillis);
+  if(forceValue > 60 && !forceToggle){
+    Serial.println(currentMillis - midiSignalTime);
+    delay(500);
+    forceToggle = true;
+  }
+  else if(forceValue < 20 && forceToggle){
+    forceToggle = false;
   }
 
   readAndProcessMIDI();            // Check for and process any incoming MIDI messages

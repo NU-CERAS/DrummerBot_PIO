@@ -38,7 +38,8 @@ void handleServoMIDI(byte type, byte note, byte velocity) {
 
   // Handle Note On with nonzero velocity (servo hit action)
   if (type == usbMIDI.NoteOn && velocity > 0) {
-      int midiSignalTime = currentMillis;
+      midiSignalTime = currentMillis;
+      //Serial.println(midiSignalTime);
       // Adjust velocity using helper functions and command servo to new position
       servoValues[servoIndex] = velocityControl(adjustedVelocityControlByte(velocity), servoIndex);
       servos[servoIndex].write(servoValues[servoIndex]);
@@ -49,11 +50,7 @@ void handleServoMIDI(byte type, byte note, byte velocity) {
       // Mark this servo as active (in hitting state)
       servoAction[servoIndex] = true;
   }
-  // Handle Note Off or Note On with zero velocity when the servo was actively hitting
-  else if ((type == usbMIDI.NoteOff || (type == usbMIDI.NoteOn && velocity == 0)) && servoAction[servoIndex]) {
-      servoAction[servoIndex] = false;  // Mark servo as no longer active
-      servos[servoIndex].write(hitPos[servoIndex]);  // Move servo to its designated hit position
-  }
+
   // Handle Note Off or Note On with zero velocity if the servo was already idle
   else if ((type == usbMIDI.NoteOff || (type == usbMIDI.NoteOn && velocity == 0)) && !servoAction[servoIndex]) {
       servos[servoIndex].write(neutPos[servoIndex]);  // Return servo to its neutral resting position

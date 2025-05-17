@@ -35,13 +35,13 @@ const int servoTypes[NUM_SERVOS] = {1, 1, 1, 1, 1, 0};
 // Dal servos (type 1) move towards smaller angles when hitting
 // Kal servos (type 0) move towards larger angles when hitting
 const int maxVelDal = 125;
-const int maxVelKal = 160;
+const int maxVelKal = 130;
 
 const int hatPedActiveAngle = 45;
 const int hatPedRestAngle = 90;
 
 // 	Defines the minimum time delay between a servo's initial hit action and its follow-up action (moving to the final hit position)
-const long interval = 50;
+const long interval = 1000;
 
 // Servo positions
 // These arrays define the neutral, hit, and low/high neutral positions for each servo

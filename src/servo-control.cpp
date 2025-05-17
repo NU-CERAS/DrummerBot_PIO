@@ -6,7 +6,7 @@
 // Purpose: Limit the incoming velocity control byte to a usable range (40 to 120)
 // This ensures that very low or very high velocity values do not cause extreme servo behavior.
 int adjustedVelocityControlByte(int velocityControlByte) {
-  return constrain(velocityControlByte, 40, 120);
+  return constrain(velocityControlByte, 1, 127);
 }
 
 // === Function: velocityControl ===
@@ -14,9 +14,9 @@ int adjustedVelocityControlByte(int velocityControlByte) {
 // Different formulas are used for Dal and Kal servos to control motion direction properly.
 int velocityControl(int changedVelocityControlByte, int servoIndex) {
   if (servoTypes[servoIndex] == 1) { // Dal servo (moves toward smaller angle when hitting)
-    return neutPos[servoIndex] - ((changedVelocityControlByte - 40) * (neutPos[servoIndex] - maxVelDal) / 80);
+    return map(changedVelocityControlByte, 1, 127, neutPos[servoIndex], maxVelKal);
   } else { // Kal servo (moves toward larger angle when hitting)
-    return neutPos[servoIndex] + ((changedVelocityControlByte - 40) * (neutPos[servoIndex] - maxVelKal) / 80);
+    return neutPos[servoIndex] + ((changedVelocityControlByte - 1) * (neutPos[servoIndex] - maxVelKal) / 80);
   }
 }
 
