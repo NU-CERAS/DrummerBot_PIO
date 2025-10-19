@@ -15,6 +15,37 @@ def adjust_vel(vel):
 def velocity_delay_map(vel):
     return 0.5*(vel-40) + 30
 
+def resolve_overlaps(notes, ticks_per_beat, tempo_map):
+    """
+    For each note number, shorten previous notes if the next one overlaps it.
+    notes: list of tuples (abs_tick, msg)
+    """
+    # Build per-note history of active note_off times
+    by_note = {}
+
+    adjusted = []
+    for abs_tick, msg in notes:
+        if msg.type == "note_on" and msg.velocity > 0:
+            note = msg.note
+            if note in by_note:
+                prev_end = by_note[note]
+                if abs_tick < prev_end:
+                    # overlap amount (ticks)
+                    overlap_ticks = prev_end - abs_tick
+                    # shorten previous note end by that overlap
+                    new_end = abs_tick
+                    by_note[note] = new_end
+                    print(f"Shortened note {note} by {overlap_ticks} ticks (~{overlap_ticks * tempo_at_tick(tempo_map, abs_tick) / ticks_per_beat / 1000:.2f} s)")
+            adjusted.append((abs_tick, msg))
+        elif msg.type in ("note_off",) or (msg.type == "note_on" and msg.velocity == 0):
+            note = msg.note
+            by_note[note] = abs_tick  # remember end time
+            adjusted.append((abs_tick, msg))
+        else:
+            adjusted.append((abs_tick, msg))
+    return adjusted
+
+
 def build_tempo_map(mid):
     """Return sorted list of (tick, us_per_beat). Starts with default at tick 0."""
     changes = [(0, DEFAULT_TEMPO_USPB)]
@@ -70,7 +101,7 @@ def write_notes(events, ticks_per_beat, out_path, mid):
 
     tempo_map = build_tempo_map(mid) if mid is not None else [(0, DEFAULT_TEMPO_USPB)]
 
-    #Shift note ONs by 50 ms using the local tempo at that tick
+    #Shift note ONs by their respective vel using the local tempo at that tick
     adjusted = []
     for abs_tick, msg in events:
         new_tick = abs_tick
@@ -82,7 +113,8 @@ def write_notes(events, ticks_per_beat, out_path, mid):
         adjusted.append((new_tick, msg.copy(time=0)))
 
     adjusted.sort(key=lambda x: (x[0], 0 if x[1].type == "note_off" else 1))
-
+    adjusted = resolve_overlaps(adjusted, ticks_per_beat, tempo_map)
+    
     #actual writing
     last_tick = 0
     for abs_tick, msg in adjusted:
