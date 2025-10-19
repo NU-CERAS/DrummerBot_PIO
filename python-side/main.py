@@ -3,7 +3,17 @@ import mido
 from bisect import bisect_right
 
 DEFAULT_TEMPO_USPB = 500_000  # 120 BPM (already in your file)
-LEAD_MS = 50
+
+def adjust_vel(vel):
+    if(vel < 40):
+        return 40
+    elif (vel > 120):
+        return 120
+    else:
+        return vel
+
+def velocity_delay_map(vel):
+    return 0.5*(vel-40) + 30
 
 def build_tempo_map(mid):
     """Return sorted list of (tick, us_per_beat). Starts with default at tick 0."""
@@ -66,6 +76,7 @@ def write_notes(events, ticks_per_beat, out_path, mid):
         new_tick = abs_tick
         if msg.type == "note_on" and msg.velocity > 0:
             uspb = tempo_at_tick(tempo_map, abs_tick)
+            LEAD_MS = velocity_delay_map(adjust_vel(msg.velocity))
             lead_ticks = ms_to_ticks(LEAD_MS, ticks_per_beat, uspb)
             new_tick = max(0, abs_tick - lead_ticks)
         adjusted.append((new_tick, msg.copy(time=0)))
@@ -88,7 +99,6 @@ def main():
     if len(sys.argv) != 3:
         print("Usage: python main.py input.mid output.mid")
         sys.exit(1)
-
     in_path, out_path = sys.argv[1], sys.argv[2]
     mid = mido.MidiFile(in_path)
     events = collect_note_events(mid)
