@@ -15,35 +15,62 @@ def adjust_vel(vel):
 def velocity_delay_map(vel):
     return 0.5*(vel-40) + 30
 
-def resolve_overlaps(notes, ticks_per_beat, tempo_map):
-    """
-    For each note number, shorten previous notes if the next one overlaps it.
-    notes: list of tuples (abs_tick, msg)
-    """
-    # Build per-note history of active note_off times
-    by_note = {}
+def is_off(msg):
+    # Treat explicit note_off and note_on with velocity 0 as OFF
+    return (msg.type == "note_off") or (msg.type == "note_on" and msg.velocity == 0)
 
-    adjusted = []
-    for abs_tick, msg in notes:
-        if msg.type == "note_on" and msg.velocity > 0:
+def is_on(msg):
+    return (msg.type == "note_on" and msg.velocity > 0)
+
+def resolve_overlaps(adjusted):
+    """
+    Shorten previous note's OFF to the next ON if they overlap.
+    Works per NOTE NUMBER (i.e., one 'actuator' per MIDI note).
+    `adjusted` is a list of (abs_tick, msg) sorted by time.
+    Returns a new adjusted list (with OFF times possibly pulled earlier),
+    then re-sorted (OFF before ON at identical ticks).
+    """
+    # For each note number, remember the most recent ON and the index of its OFF event (if seen).
+    state = {}  # note -> {"last_on_tick": int or None, "off_idx": int or None, "off_tick": int or None}
+
+    # We will modify in place; make a shallow copy of tuples with messages preserved
+    adjusted = list(adjusted)
+
+    for i, (tick, msg) in enumerate(adjusted):
+        if is_on(msg):
             note = msg.note
-            if note in by_note:
-                prev_end = by_note[note]
-                if abs_tick < prev_end:
-                    # overlap amount (ticks)
-                    overlap_ticks = prev_end - abs_tick
-                    # shorten previous note end by that overlap
-                    new_end = abs_tick
-                    by_note[note] = new_end
-                    print(f"Shortened note {note} by {overlap_ticks} ticks (~{overlap_ticks * tempo_at_tick(tempo_map, abs_tick) / ticks_per_beat / 1000:.2f} s)")
-            adjusted.append((abs_tick, msg))
-        elif msg.type in ("note_off",) or (msg.type == "note_on" and msg.velocity == 0):
+            st = state.get(note)
+            if st and st.get("off_idx") is not None:
+                prev_off_idx = st["off_idx"]
+                prev_off_tick = st["off_tick"]
+                # If the new ON starts before the previous OFF ends, shorten the previous OFF
+                if tick < prev_off_tick:
+                    # Replace the previous OFF event's time with the new ON tick
+                    prev_off_msg = adjusted[prev_off_idx][1]
+                    adjusted[prev_off_idx] = (tick, prev_off_msg)
+                # Reset OFF tracking; we’re starting a new note window
+                state[note] = {"last_on_tick": tick, "off_idx": None, "off_tick": None}
+            else:
+                # No prior OFF recorded; just start a new note window
+                state[note] = {"last_on_tick": tick, "off_idx": None, "off_tick": None}
+
+        elif is_off(msg):
             note = msg.note
-            by_note[note] = abs_tick  # remember end time
-            adjusted.append((abs_tick, msg))
+            st = state.get(note)
+            # Record where this OFF lives so a future overlapping ON can pull it earlier
+            if st is None:
+                state[note] = {"last_on_tick": None, "off_idx": i, "off_tick": tick}
+            else:
+                st["off_idx"] = i
+                st["off_tick"] = tick
         else:
-            adjusted.append((abs_tick, msg))
+            # ignore other events
+            pass
+
+    # Re-sort after any OFF-time edits; also enforce OFF before ON when equal
+    adjusted.sort(key=lambda x: (x[0], 0 if is_off(x[1]) else 1))
     return adjusted
+
 
 
 def build_tempo_map(mid):
@@ -112,15 +139,17 @@ def write_notes(events, ticks_per_beat, out_path, mid):
             new_tick = max(0, abs_tick - lead_ticks)
         adjusted.append((new_tick, msg.copy(time=0)))
 
-    adjusted.sort(key=lambda x: (x[0], 0 if x[1].type == "note_off" else 1))
-    adjusted = resolve_overlaps(adjusted, ticks_per_beat, tempo_map)
-    
-    #actual writing
+    # after you filled `adjusted = [(new_tick, msg.copy(time=0)) ...]`
+    adjusted.sort(key=lambda x: (x[0], 0 if is_off(x[1]) else 1))
+    adjusted = resolve_overlaps(adjusted)
+
+# then convert to deltas and write out, as you already do
     last_tick = 0
     for abs_tick, msg in adjusted:
         delta = max(0, abs_tick - last_tick)
         last_tick = abs_tick
         notes.append(msg.copy(time=delta))
+
 
     # end-of-track markers
     meta.append(mido.MetaMessage("end_of_track", time=0))
