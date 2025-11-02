@@ -1,6 +1,7 @@
 import sys
 import mido
 from bisect import bisect_right
+from collections import deque
 
 DEFAULT_TEMPO_USPB = 500_000  # 120 BPM (already in your file)
 
@@ -21,57 +22,6 @@ def is_off(msg):
 
 def is_on(msg):
     return (msg.type == "note_on" and msg.velocity > 0)
-
-def resolve_overlaps(adjusted):
-    """
-    Shorten previous note's OFF to the next ON if they overlap.
-    Works per NOTE NUMBER (i.e., one 'actuator' per MIDI note).
-    `adjusted` is a list of (abs_tick, msg) sorted by time.
-    Returns a new adjusted list (with OFF times possibly pulled earlier),
-    then re-sorted (OFF before ON at identical ticks).
-    """
-    # For each note number, remember the most recent ON and the index of its OFF event (if seen).
-    state = {}  # note -> {"last_on_tick": int or None, "off_idx": int or None, "off_tick": int or None}
-
-    # We will modify in place; make a shallow copy of tuples with messages preserved
-    adjusted = list(adjusted)
-
-    for i, (tick, msg) in enumerate(adjusted):
-        if is_on(msg):
-            note = msg.note
-            st = state.get(note)
-            if st and st.get("off_idx") is not None:
-                prev_off_idx = st["off_idx"]
-                prev_off_tick = st["off_tick"]
-                # If the new ON starts before the previous OFF ends, shorten the previous OFF
-                if tick < prev_off_tick:
-                    # Replace the previous OFF event's time with the new ON tick
-                    prev_off_msg = adjusted[prev_off_idx][1]
-                    adjusted[prev_off_idx] = (tick, prev_off_msg)
-                # Reset OFF tracking; we’re starting a new note window
-                state[note] = {"last_on_tick": tick, "off_idx": None, "off_tick": None}
-            else:
-                # No prior OFF recorded; just start a new note window
-                state[note] = {"last_on_tick": tick, "off_idx": None, "off_tick": None}
-
-        elif is_off(msg):
-            note = msg.note
-            st = state.get(note)
-            # Record where this OFF lives so a future overlapping ON can pull it earlier
-            if st is None:
-                state[note] = {"last_on_tick": None, "off_idx": i, "off_tick": tick}
-            else:
-                st["off_idx"] = i
-                st["off_tick"] = tick
-        else:
-            # ignore other events
-            pass
-
-    # Re-sort after any OFF-time edits; also enforce OFF before ON when equal
-    adjusted.sort(key=lambda x: (x[0], 0 if is_off(x[1]) else 1))
-    return adjusted
-
-
 
 def build_tempo_map(mid):
     """Return sorted list of (tick, us_per_beat). Starts with default at tick 0."""
@@ -99,21 +49,76 @@ def tempo_at_tick(tempo_map, tick):
 
 def ms_to_ticks(ms, ticks_per_beat, us_per_beat):
     return int(round(mido.second2tick(ms / 1000.0, ticks_per_beat, us_per_beat)))
+    adjusted = list(adjusted)  # shallow copy so we can edit tuples
 
+def shorten_prev_if_overlap(adjusted, pad_ms=10, tempo_map=None, ticks_per_beat=None):
+    """
+    For each note, if a new ON happens before the previous OFF, shorten that previous OFF to
+    (new_ON_tick - pad_ms) using the local tempo at that ON's tick.
+
+    Handles multiple overlaps by queueing a cutoff for each new ON that arrives while the note
+    is still 'open'. Each OFF consumes one pending cutoff (FIFO).
+    """
+    if tempo_map is None or ticks_per_beat is None:
+        raise ValueError("shorten_prev_if_overlap needs tempo_map and ticks_per_beat when using pad_ms.")
+
+    adjusted = list(adjusted)
+
+    # Most recent ON for this note (the *current* instance)
+    current_on = {}  # note -> tick
+
+    # For each note, a FIFO of desired cutoff ticks for the *previous* instances
+    pending_cutoffs = {}  # note -> deque([cut_tick1, cut_tick2, ...])
+
+    for i, (tick, msg) in enumerate(adjusted):
+        if is_on(msg):
+            note = msg.note
+            if note in current_on:
+                # There's already an open instance; create a cutoff for that previous one
+                uspb = tempo_at_tick(tempo_map, tick)
+                pad_ticks = ms_to_ticks(pad_ms, ticks_per_beat, uspb)
+                desired = max(0, tick - pad_ticks)
+
+                # Clamp so we never end before that previous instance actually started
+                desired = max(desired, current_on[note])
+
+                dq = pending_cutoffs.setdefault(note, deque())
+                dq.append(desired)
+
+            # This ON becomes the current instance
+            current_on[note] = tick
+
+        elif is_off(msg):
+            note = msg.note
+            dq = pending_cutoffs.get(note)
+
+            if dq and len(dq) > 0:
+                # This OFF closes the *previous* instance; apply the queued cutoff
+                new_off_tick = dq.popleft()
+                # Only move earlier, never later
+                if new_off_tick <= tick:
+                    adjusted[i] = (new_off_tick, msg)
+                # Do NOT clear current_on; the current instance (latest ON) is still open
+            else:
+                # No pending cutoff -> this OFF closes the current instance
+                current_on.pop(note, None)
+
+    # After moving OFFs, re-sort to keep OFFs before ONs at ties
+    adjusted.sort(key=lambda x: (x[0], 0 if is_off(x[1]) else 1))
+    return adjusted
 
 def collect_note_events(mid):
-    """Return a list of (abs_tick, mido.Message) for NOTE ON/OFF across all tracks."""
+    """Return a list of (abs_tick, mido.Message) for ON/OFF notes across all tracks."""
     events = []
     for track in mid.tracks:
         t = 0
         for msg in track:
             t += msg.time
             if msg.type in ("note_on", "note_off"):
-                # clone the message with time=0; we’ll set proper deltas later
                 events.append((t, msg.copy(time=0)))
-    # Sort by absolute tick; at same tick, emit note_off before note_on
     events.sort(key=lambda x: (x[0], 0 if x[1].type == "note_off" else 1))
     return events
+
 
 def write_notes(events, ticks_per_beat, out_path, mid):
     """Write notes to a new MIDI with a default tempo and a single note track."""
@@ -141,7 +146,12 @@ def write_notes(events, ticks_per_beat, out_path, mid):
 
     # after you filled `adjusted = [(new_tick, msg.copy(time=0)) ...]`
     adjusted.sort(key=lambda x: (x[0], 0 if is_off(x[1]) else 1))
-    adjusted = resolve_overlaps(adjusted)
+    adjusted = shorten_prev_if_overlap(
+        adjusted,
+        pad_ms=10,
+        tempo_map=tempo_map,
+        ticks_per_beat=ticks_per_beat
+        )
 
 # then convert to deltas and write out, as you already do
     last_tick = 0
